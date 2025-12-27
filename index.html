@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <title>music-player</title>
+  </head>
+  <body>
+    <div class="app-setting">
+      <div class="github">
+        <a href="#" type="button" target="_blank">
+          <i class="fa-brands fa-github"></i>
+        </a>
+      </div>
+      <button class="theme__switcher" data-state="unchecked">
+        <div class="theme__icon theme__icon--light">
+          <i class="fa-regular fa-sun"></i>
+        </div>
+        <div class="theme__icon theme__icon--dark">
+          <i class="fa-regular fa-moon"></i>
+        </div>
+        <div class="theme__thumb"></div>
+      </button>
+    </div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
