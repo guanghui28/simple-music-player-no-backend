@@ -1,20 +1,13 @@
-import { $ } from "./dom";
+import { $, $$ } from "./dom";
 import { SONGS } from "./data";
 import "./style.css";
 import { formatTime } from "./format";
-
-/**
- * 7. add volume control;
- * 8. add playback speed control;
- * 9. add repeat mode (repeat all, repeat one, no repeat);
- * 10. add playlist support (create playlist, add/remove song to/from playlist);
- * 11. Dark mode support.
- * 12. Provide more color options themes.
- */
+import { COLORS, type Color } from "./colors";
 
 const SKIP_SECONDS = 10;
 
 type Song = (typeof SONGS)[number];
+type Theme = "light" | "dark";
 
 class MusicPlayer {
   private app: HTMLElement;
@@ -41,6 +34,8 @@ class MusicPlayer {
   private themeSwitcher!: HTMLButtonElement;
   private isSeeking = false;
   private seekingTimeoutID: ReturnType<typeof setTimeout> = 0;
+  private currentColor: Color = "rose";
+  private theme: Theme = "light";
 
   constructor(app: HTMLElement) {
     this.app = app;
@@ -176,26 +171,28 @@ class MusicPlayer {
 
   private loadUserSystemTheme(): void {
     const isDark = window.matchMedia("(prefers-color-scheme:dark)").matches;
-    const theme = isDark ? "dark" : "light";
-    const state = isDark ? "checked" : "unchecked";
+    this.setTheme(isDark ? "dark" : "light");
+  }
 
+  private setTheme(theme: Theme): void {
+    this.theme = theme;
+    const data = theme === "light" ? "unchecked" : "checked";
+
+    this.themeSwitcher.setAttribute("data-state", data);
     document.documentElement.setAttribute("data-theme", theme);
-    this.themeSwitcher.setAttribute("data-state", state);
+    this.updateColorPicker(theme);
   }
 
   private toggleTheme(): void {
-    const state = this.themeSwitcher.getAttribute("data-state");
-    const newState = state === "checked" ? "unchecked" : "checked";
-
-    this.themeSwitcher.setAttribute("data-state", newState);
-
-    const theme = newState === "unchecked" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", theme);
+    this.setTheme(this.theme === "light" ? "dark" : "light");
   }
 
   private bindEvents(): void {
     const switcher = $(".theme__switcher") as HTMLButtonElement;
     switcher.addEventListener("click", this.toggleTheme.bind(this));
+
+    const colorPicker = $(".color-picker") as HTMLDivElement;
+    colorPicker.addEventListener("click", this.onChangeColor.bind(this));
 
     this.playBtn.addEventListener("click", this.togglePlayPause.bind(this));
     this.nextBtn.addEventListener("click", this.nextSong.bind(this));
@@ -211,21 +208,12 @@ class MusicPlayer {
       "click",
       this.onSkipTimeBackward.bind(this)
     );
-    this.favoriteBtn.addEventListener("click", () => {
-      SONGS[this.currentSongIndex].isFavorite =
-        !SONGS[this.currentSongIndex].isFavorite;
+    this.favoriteBtn.addEventListener(
+      "click",
+      this.onToggleFavorite.bind(this)
+    );
 
-      const isFavorite = SONGS[this.currentSongIndex].isFavorite;
-      if (isFavorite) {
-        // render full
-      } else {
-        // render un favorite
-      }
-    });
-
-    this.volumeBtn.addEventListener("mouseenter", () => {
-      // show volume track
-    });
+    this.volumeBtn.addEventListener("mouseenter", this.onChangeVolume);
 
     this.trackProgress.addEventListener(
       "mousemove",
@@ -234,6 +222,45 @@ class MusicPlayer {
     this.trackProgress.addEventListener("click", this.onHardSeek.bind(this));
 
     window.addEventListener("scroll", this.onScroll.bind(this));
+  }
+
+  private onChangeVolume(): void {
+    // show volume track
+  }
+
+  private onToggleFavorite(): void {
+    SONGS[this.currentSongIndex].isFavorite =
+      !SONGS[this.currentSongIndex].isFavorite;
+
+    const isFavorite = SONGS[this.currentSongIndex].isFavorite;
+    if (isFavorite) {
+      // render full
+    } else {
+      // render un favorite
+    }
+  }
+
+  private onChangeColor(event: PointerEvent): void {
+    const target = event.target as HTMLElement;
+    const colorEle = target.closest<HTMLElement>(".color-picker__item");
+
+    if (!colorEle) return;
+
+    const curActiveColorEle = $<HTMLElement>(".color-picker__item.active");
+    if (curActiveColorEle) {
+      curActiveColorEle.classList.remove("active");
+    }
+
+    colorEle.classList.add("active");
+
+    const color = colorEle.getAttribute("data-color") as Color;
+    const { primaryColor, secondaryColor } = COLORS[color][this.theme];
+
+    document.documentElement.style.setProperty("--primary-color", primaryColor);
+    document.documentElement.style.setProperty(
+      "--secondary-color",
+      secondaryColor
+    );
   }
 
   private onHardSeek(event: PointerEvent): void {
@@ -356,6 +383,8 @@ class MusicPlayer {
 
   private render() {
     this.app.innerHTML = `
+    ${this.renderAppSettings()}
+    ${this.renderColorPicker()}
     <div id="music-player">
         <div class="player">
           ${this.renderCurrentSong()}
@@ -368,6 +397,31 @@ class MusicPlayer {
         </div>
     </div>
       `;
+  }
+
+  private renderAppSettings(): string {
+    return `
+    <div class="app-setting">
+      <div class="github">
+        <a
+          href="https://github.com/guanghui28/simple-music-player-no-backend"
+          type="button"
+          target="_blank"
+        >
+          <i class="fa-brands fa-github"></i>
+        </a>
+      </div>
+      <button class="theme__switcher" data-state="unchecked">
+        <div class="theme__icon theme__icon--light">
+          <i class="fa-regular fa-sun"></i>
+        </div>
+        <div class="theme__icon theme__icon--dark">
+          <i class="fa-regular fa-moon"></i>
+        </div>
+        <div class="theme__thumb"></div>
+      </button>
+    </div>
+    `;
   }
 
   private renderVolumeControl(): string {
@@ -455,6 +509,35 @@ class MusicPlayer {
         </div>
     </div>
     `;
+  }
+
+  private updateColorPicker(theme: Theme): void {
+    const colorPickerItems = $$<HTMLElement>(".color-picker__item")!;
+
+    colorPickerItems.forEach(($item) => {
+      const color = $item.getAttribute("data-color") as Color;
+      const bgColor = COLORS[color][theme].primaryColor;
+      $item.style.backgroundColor = bgColor;
+    });
+  }
+
+  private renderColorPicker(): string {
+    let output = "";
+    for (const [color, dataColor] of Object.entries(COLORS)) {
+      const classNames = `color-picker__item ${
+        color === this.currentColor ? "active" : ""
+      }`;
+      const bgColor = dataColor[this.theme].primaryColor;
+      output += `
+                <div 
+                  class="${classNames}" 
+                  data-color="${color}"
+                  style="--color-picker: ${bgColor}"
+                >
+                </div>`;
+    }
+
+    return `<div class="color-picker">${output}</div>`;
   }
 
   private renderTrackList(): string {
