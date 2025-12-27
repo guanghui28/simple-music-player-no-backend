@@ -38,6 +38,7 @@ class MusicPlayer {
   private skipForwardBtn!: HTMLButtonElement;
   private skipBackwardBtn!: HTMLButtonElement;
   private favoriteBtn!: HTMLButtonElement;
+  private themeSwitcher!: HTMLButtonElement;
   private isSeeking = false;
   private seekingTimeoutID: ReturnType<typeof setTimeout> = 0;
 
@@ -66,6 +67,7 @@ class MusicPlayer {
     this.skipForwardBtn = $(".btn--skip-forward") as HTMLButtonElement;
     this.skipBackwardBtn = $(".btn--skip-backward") as HTMLButtonElement;
     this.favoriteBtn = $(".btn--favorite") as HTMLButtonElement;
+    this.themeSwitcher = $(".theme__switcher") as HTMLButtonElement;
   }
 
   get currentSongIndex(): number {
@@ -113,6 +115,7 @@ class MusicPlayer {
         this.render();
         this.initBindings();
         this.bindEvents();
+        this.loadUserSystemTheme();
         this.loadAudio();
         this.bindAudioEvents();
       })
@@ -171,19 +174,28 @@ class MusicPlayer {
     this.audio.src = this.currentSong.audioUrl;
   }
 
+  private loadUserSystemTheme(): void {
+    const isDark = window.matchMedia("(prefers-color-scheme:dark)").matches;
+    const theme = isDark ? "dark" : "light";
+    const state = isDark ? "checked" : "unchecked";
+
+    document.documentElement.setAttribute("data-theme", theme);
+    this.themeSwitcher.setAttribute("data-state", state);
+  }
+
+  private toggleTheme(): void {
+    const state = this.themeSwitcher.getAttribute("data-state");
+    const newState = state === "checked" ? "unchecked" : "checked";
+
+    this.themeSwitcher.setAttribute("data-state", newState);
+
+    const theme = newState === "unchecked" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
   private bindEvents(): void {
     const switcher = $(".theme__switcher") as HTMLButtonElement;
-    switcher.addEventListener("click", () => {
-      const state = switcher.getAttribute("data-state") as
-        | "checked"
-        | "unchecked";
-      const newState = state === "checked" ? "unchecked" : "checked";
-      switcher.setAttribute("data-state", newState);
-
-      const theme = newState === "unchecked" ? "light" : "dark";
-
-      document.documentElement.setAttribute("data-theme", theme);
-    });
+    switcher.addEventListener("click", this.toggleTheme.bind(this));
 
     this.playBtn.addEventListener("click", this.togglePlayPause.bind(this));
     this.nextBtn.addEventListener("click", this.nextSong.bind(this));
