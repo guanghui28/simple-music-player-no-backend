@@ -69,6 +69,11 @@ button {
 .github a {
   font-size: 2rem;
   color: var(--neutral-900);
+  transition: color 0.3s ease-in-out;
+}
+
+.github:hover a {
+  color: var(--primary-color);
 }
 
 .theme__switcher {
