@@ -154,6 +154,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  z-index: 100;
 }
 
 .color-picker__item {
@@ -194,7 +195,7 @@ button {
   flex-direction: column;
   gap: 3rem;
   background-color: var(--neutral-50);
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .player__detail {
@@ -435,4 +436,54 @@ button {
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--neutral-400);
+}
+
+@media screen and (max-width: 320px) {
+  html {
+    font-size: 50%;
+  }
+
+  #music-player {
+    width: 100%;
+  }
+
+  .player {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .player__playing {
+    font-size: 1.2rem;
+  }
+
+  .player__name {
+    font-size: 2rem;
+  }
+
+  .player__cd {
+    width: 26rem;
+  }
+
+  .player__cd-wrappper {
+    width: 24rem;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  html {
+    font-size: 55%;
+  }
+
+  #music-player {
+    width: 100%;
+  }
+
+  .player {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
