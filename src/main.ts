@@ -158,6 +158,20 @@ class MusicPlayer {
       "timeupdate",
       this.onAudioTimeUpdate.bind(this)
     );
+
+    this.audio.addEventListener(
+      "volumechange",
+      this.onAudioVolumeChange.bind(this)
+    );
+  }
+
+  private onAudioVolumeChange() {
+    if (this.audio.volume === 0) {
+      this.volumeBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+      return;
+    }
+
+    this.volumeBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
   }
 
   private onAudioTimeUpdate(): void {
@@ -223,8 +237,8 @@ class MusicPlayer {
       this.onToggleFavorite.bind(this)
     );
 
-    this.volumeBtn.addEventListener("mouseenter", this.onToggleMute.bind(this));
-    // <i class="fa-solid fa-volume-xmark"></i>;
+    this.volumeBtn.addEventListener("click", this.onToggleMute.bind(this));
+
     this.volumeSlider.addEventListener("click", this.onChangeVolume.bind(this));
 
     this.trackProgress.addEventListener(
@@ -236,10 +250,29 @@ class MusicPlayer {
     window.addEventListener("scroll", this.onScroll.bind(this));
   }
 
-  private onToggleMute(): void {}
+  private onToggleMute(): void {
+    const defaultValue = 0.5;
+    this.audio.volume = this.audio.volume === 0 ? defaultValue : 0;
 
-  private onChangeVolume(event: PointerEvent): void {
-    // show volume track
+    const percent = Math.round((100 * this.audio.volume) / 1);
+    this.volumeSlider.style.setProperty(
+      "--volume-value-percent",
+      `${percent}%`
+    );
+  }
+
+  private onChangeVolume(event: PointerEvent | MouseEvent): void {
+    const { percent, newValue } = this.getProgress({
+      offsetX: event.offsetX,
+      ele: this.volumeSlider,
+      value: 1,
+    });
+
+    this.volumeSlider.style.setProperty(
+      "--volume-value-percent",
+      `${percent}%`
+    );
+    this.audio.volume = newValue;
   }
 
   private onToggleFavorite(): void {
@@ -277,22 +310,38 @@ class MusicPlayer {
   }
 
   private onHardSeek(event: PointerEvent): void {
-    const { newTime } = this.fn(event);
+    const { newValue: newTime } = this.getProgress({
+      offsetX: event.offsetX,
+      ele: this.trackProgress,
+      value: this.audio.duration,
+    });
     this.audio.currentTime = newTime;
   }
 
   private onHoverTrackProgress(event: MouseEvent) {
-    const { percent, newTime } = this.fn(event);
+    const { percent, newValue: newTime } = this.getProgress({
+      offsetX: event.offsetX,
+      ele: this.trackProgress,
+      value: this.audio.duration,
+    });
     this.trackToolTip.style.setProperty("--current-left", `${percent}%`);
     this.trackToolTip.textContent = formatTime(newTime);
   }
 
-  private fn(event: PointerEvent | MouseEvent) {
-    const width = this.trackProgress.clientWidth;
-    const percent = event.offsetX / width;
-    const newTime = percent * this.audio.duration;
+  private getProgress({
+    offsetX,
+    ele,
+    value,
+  }: {
+    offsetX: number;
+    ele: HTMLElement;
+    value: number;
+  }) {
+    const width = ele.clientWidth;
+    const percent = Math.min(Math.max(0, offsetX / width), 1);
+    const newValue = percent * value;
 
-    return { percent: Math.round(percent * 100), newTime };
+    return { percent: Math.round(percent * 100), newValue };
   }
 
   private rewind(time: number): void {
