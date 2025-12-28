@@ -28,6 +28,7 @@ class MusicPlayer {
   private songName!: HTMLElement;
   private endTime!: HTMLElement;
   private volumeBtn!: HTMLButtonElement;
+  private volumeSlider!: HTMLDivElement;
   private skipForwardBtn!: HTMLButtonElement;
   private skipBackwardBtn!: HTMLButtonElement;
   private favoriteBtn!: HTMLButtonElement;
@@ -59,6 +60,7 @@ class MusicPlayer {
     this.songName = $(".player__name") as HTMLElement;
     this.endTime = $(".progress__end-time") as HTMLElement;
     this.volumeBtn = $(".btn--volume") as HTMLButtonElement;
+    this.volumeSlider = $(".volume-track__slider") as HTMLDivElement;
     this.skipForwardBtn = $(".btn--skip-forward") as HTMLButtonElement;
     this.skipBackwardBtn = $(".btn--skip-backward") as HTMLButtonElement;
     this.favoriteBtn = $(".btn--favorite") as HTMLButtonElement;
@@ -121,10 +123,18 @@ class MusicPlayer {
   }
 
   private onScroll(): void {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scale = Math.max(0, 1 - scrollTop / 320);
-    this.playerCD.style.transform = `scale(${scale})`;
-    this.playerCD.style.opacity = scale.toString();
+    // console.log({
+    //   scrollY: window.scrollY,
+    //   scrollTop: document.documentElement.scrollTop,
+    // });
+    // const scrollTop = Math.round(
+    //   window.scrollY || document.documentElement.scrollTop
+    // );
+    // const newWidth = 300 - scrollTop;
+    // console.log(newWidth);
+    // const scale = (100 * newWidth) / 300;
+    // this.playerCD.style.width = `${newWidth}px`;
+    // this.playerCD.style.opacity = scale.toString();
   }
 
   private bindAudioEvents(): void {
@@ -213,7 +223,9 @@ class MusicPlayer {
       this.onToggleFavorite.bind(this)
     );
 
-    this.volumeBtn.addEventListener("mouseenter", this.onChangeVolume);
+    this.volumeBtn.addEventListener("mouseenter", this.onToggleMute.bind(this));
+    // <i class="fa-solid fa-volume-xmark"></i>;
+    this.volumeSlider.addEventListener("click", this.onChangeVolume.bind(this));
 
     this.trackProgress.addEventListener(
       "mousemove",
@@ -224,7 +236,9 @@ class MusicPlayer {
     window.addEventListener("scroll", this.onScroll.bind(this));
   }
 
-  private onChangeVolume(): void {
+  private onToggleMute(): void {}
+
+  private onChangeVolume(event: PointerEvent): void {
     // show volume track
   }
 
@@ -437,16 +451,19 @@ class MusicPlayer {
             <button class="btn btn--download">
                 <i class="fa-solid fa-download"></i>
             </button>
-            <button class="btn btn--lyrics">
-                <i class="fa-solid fa-microphone"></i>
-            </button>
+            <div class="volume-track">
+              <button class="btn btn--volume">
+                  <i class="fa-solid fa-volume-high"></i>
+              </button>
+              <div class="volume-track__slider"></div>
+            </div>
         </div>
         <div>
             <button class="btn btn--skip-backward">
                 <i class="fa-solid fa-arrow-rotate-left"></i>
             </button>
-            <button class="btn btn--volume">
-                <i class="fa-solid fa-volume-high"></i>
+            <button class="btn btn--lyrics">
+                <i class="fa-solid fa-microphone"></i>
             </button>
             <button class="btn btn--skip-forward">
                 <i class="fa-solid fa-arrow-rotate-right"></i>
