@@ -1,8 +1,8 @@
 import { $, $$ } from "./dom";
 import { SONGS } from "./data";
-import "./style.css";
 import { formatTime } from "./format";
 import { COLORS, type Color } from "./colors";
+import "./style.css";
 
 const SKIP_SECONDS = 10;
 
@@ -77,6 +77,10 @@ class MusicPlayer {
     this.addTrackActiveClass();
   }
 
+  get currentSong(): Song {
+    return SONGS[this.currentSongIndex];
+  }
+
   private addTrackActiveClass() {
     const trackActive = $(".track-item.active");
     if (trackActive) {
@@ -87,10 +91,6 @@ class MusicPlayer {
     if (currentTrack) {
       currentTrack.classList.add("active");
     }
-  }
-
-  get currentSong(): Song {
-    return SONGS[this.currentSongIndex];
   }
 
   private init() {
@@ -232,12 +232,11 @@ class MusicPlayer {
     SONGS[this.currentSongIndex].isFavorite =
       !SONGS[this.currentSongIndex].isFavorite;
 
-    const isFavorite = SONGS[this.currentSongIndex].isFavorite;
-    if (isFavorite) {
-      // render full
-    } else {
-      // render un favorite
+    if (SONGS[this.currentSongIndex].isFavorite) {
+      this.favoriteBtn.classList.add("active");
+      return;
     }
+    this.favoriteBtn.classList.remove("active");
   }
 
   private onChangeColor(event: PointerEvent): void {
@@ -425,11 +424,12 @@ class MusicPlayer {
   }
 
   private renderVolumeControl(): string {
+    const isFavorite = SONGS[this.currentSongIndex].isFavorite;
     return `
     <div class="player__audio-actions">
         <div>
-            <button class="btn btn--favorite">
-            <i class="fa-regular fa-heart"></i>
+            <button class="btn btn--favorite ${isFavorite ? "active" : ""}">
+              <i class="fa-solid fa-heart"></i>
             </button>
             <button class="btn btn--share">
                 <i class="fa-solid fa-share-nodes"></i>

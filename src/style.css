@@ -272,8 +272,16 @@ button {
   font-size: 2rem;
 }
 
-.btn:not(.btn--play):hover {
+.btn:not(.btn--play, .active):hover {
   color: var(--primary-color);
+}
+
+.btn.active {
+  color: var(--primary-color);
+}
+
+.btn.active:hover {
+  color: var(--neutral-400);
 }
 
 .btn--play:hover {
