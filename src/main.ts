@@ -3,21 +3,7 @@ import { SONGS } from "./data";
 import { formatTime } from "./format";
 import { COLORS, type Color } from "./colors";
 import "./style.css";
-
-export function throttle<T extends (...args: any[]) => void>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let lastCall = 0;
-
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-    if (now - lastCall >= delay) {
-      lastCall = now;
-      fn(...args);
-    }
-  };
-}
+import { throttle } from "./time";
 
 const SKIP_SECONDS = 10;
 
@@ -52,7 +38,6 @@ class MusicPlayer {
   private seekingTimeoutID: ReturnType<typeof setTimeout> = 0;
   private currentColor: Color = "rose";
   private theme: Theme = "light";
-  private playerCDOnScrollPercent: number = 0;
 
   constructor(app: HTMLElement) {
     this.app = app;
