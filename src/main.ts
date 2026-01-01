@@ -4,6 +4,21 @@ import { formatTime } from "./format";
 import { COLORS, type Color } from "./colors";
 import "./style.css";
 
+export function throttle<T extends (...args: any[]) => void>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      fn(...args);
+    }
+  };
+}
+
 const SKIP_SECONDS = 10;
 
 type Song = (typeof SONGS)[number];
@@ -37,6 +52,7 @@ class MusicPlayer {
   private seekingTimeoutID: ReturnType<typeof setTimeout> = 0;
   private currentColor: Color = "rose";
   private theme: Theme = "light";
+  private playerCDOnScrollPercent: number = 0;
 
   constructor(app: HTMLElement) {
     this.app = app;
@@ -122,19 +138,23 @@ class MusicPlayer {
       });
   }
 
+  get originalPlayerCDHeight(): number {
+    // HOW ABOUT RESPONSIVE SCREEN?
+    // NEED TO FIX
+    return 320;
+  }
+
   private onScroll(): void {
-    // console.log({
-    //   scrollY: window.scrollY,
-    //   scrollTop: document.documentElement.scrollTop,
-    // });
-    // const scrollTop = Math.round(
-    //   window.scrollY || document.documentElement.scrollTop
-    // );
-    // const newWidth = 300 - scrollTop;
-    // console.log(newWidth);
-    // const scale = (100 * newWidth) / 300;
-    // this.playerCD.style.width = `${newWidth}px`;
-    // this.playerCD.style.opacity = scale.toString();
+    const MAX_PERCENT = 15;
+    const scrollPercent =
+      (100 * document.documentElement.scrollTop) /
+      document.documentElement.scrollHeight;
+
+    const playerCDPercent = Math.max(0, 1 - scrollPercent / MAX_PERCENT);
+    const newWidth = Math.floor(playerCDPercent * this.originalPlayerCDHeight);
+    const scale = Math.max(0, playerCDPercent);
+    this.playerCD.style.width = `${newWidth}px`;
+    this.playerCD.style.opacity = scale.toString();
   }
 
   private bindAudioEvents(): void {
@@ -247,7 +267,9 @@ class MusicPlayer {
     );
     this.trackProgress.addEventListener("click", this.onHardSeek.bind(this));
 
-    window.addEventListener("scroll", this.onScroll.bind(this));
+    window.addEventListener("scroll", throttle(this.onScroll.bind(this), 16), {
+      passive: true,
+    });
   }
 
   private onToggleMute(): void {
