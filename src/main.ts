@@ -471,7 +471,9 @@ class MusicPlayer {
         this.playBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
         this.cdPlayerWrapper.classList.remove("paused");
       })
-      .catch((error) => {});
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   private pauseSong(): void {
