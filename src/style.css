@@ -457,6 +457,7 @@ button {
 }
 
 .track-item {
+  position: relative;
   background-color: var(--neutral-50);
   border-radius: 3px;
   cursor: pointer;
@@ -512,6 +513,39 @@ button {
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--neutral-400);
+}
+
+.dropdown {
+  position: absolute;
+  right: 1rem;
+  top: calc(-50%);
+  z-index: 200;
+  display: none;
+}
+
+.dropdown.active {
+  display: block;
+}
+
+.dropdown__container {
+  background-color: var(--neutral-100);
+  color: var(--neutral-900);
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px var(--shadow-color);
+  min-width: 12rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.dropdown__item {
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.dropdown__item:hover {
+  color: var(--primary-color);
+  background-color: var(--body-bg-color);
 }
 
 @media screen and (max-width: 320px) {

@@ -1,4 +1,4 @@
-import { $, $$ } from "./dom";
+import { $, $$, onClickOutside } from "./dom";
 import { SONGS } from "./data";
 import { formatTime } from "./format";
 import { COLORS, type Color } from "./colors";
@@ -113,6 +113,7 @@ class MusicPlayer {
         this.render();
         this.initBindings();
         this.bindEvents();
+        this.addOnClickOutside();
         this.loadUserSystemTheme();
         this.loadAudio();
         this.bindAudioEvents();
@@ -140,6 +141,10 @@ class MusicPlayer {
     const scale = Math.max(0, playerCDPercent);
     this.playerCD.style.width = `${newWidth}px`;
     this.playerCD.style.opacity = scale.toString();
+
+    $$(".dropdown.active").forEach((item) => {
+      item.classList.remove("active");
+    });
   }
 
   private bindAudioEvents(): void {
@@ -228,7 +233,7 @@ class MusicPlayer {
     this.prevBtn.addEventListener("click", this.prevSong.bind(this));
     this.shuffleBtn.addEventListener("click", this.shuffleSong.bind(this));
     this.replayBtn.addEventListener("click", this.replaySong.bind(this));
-    this.trackList.addEventListener("click", this.onPlaySong.bind(this));
+    this.trackList.addEventListener("click", this.onTrackListClick.bind(this));
     this.skipForwardBtn.addEventListener(
       "click",
       this.onSkipTimeForward.bind(this)
@@ -374,13 +379,48 @@ class MusicPlayer {
     );
   }
 
-  private onPlaySong(event: PointerEvent): void {
+  private onTrackListClick(event: PointerEvent): void {
     const target = event.target as HTMLElement;
+    if (target.closest(".dropdown")) {
+      this.onDropdownClick(target);
+      event.stopPropagation();
+      return;
+    }
+
+    if (target.closest(".btn--more")) {
+      this.onMoreButtonClick(target);
+      event.stopPropagation();
+      return;
+    }
+
     const trackItem = target.closest(".track-item");
     if (trackItem) {
       this.onTrackItemClick(trackItem as HTMLDivElement);
-      event.stopPropagation();
     }
+  }
+
+  private addOnClickOutside(): void {
+    $$<HTMLElement>(".dropdown").forEach((item) => {
+      onClickOutside(item, () => {
+        if (!item.classList.contains("active")) return;
+        item.classList.remove("active");
+      });
+    });
+  }
+
+  private onDropdownClick(target: HTMLElement): void {
+    console.log(target);
+    // do here
+  }
+
+  private onMoreButtonClick(target: HTMLElement): void {
+    $$(".dropdown").forEach((item) => {
+      item.classList.remove("active");
+    });
+
+    const trackItem = target.closest(".track-item") as HTMLDivElement;
+    const dropDown = trackItem.querySelector(".dropdown") as HTMLElement;
+    dropDown.classList.add("active");
   }
 
   private onTrackItemClick(trackItem: HTMLDivElement): void {
@@ -431,9 +471,7 @@ class MusicPlayer {
         this.playBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
         this.cdPlayerWrapper.classList.remove("paused");
       })
-      .catch((error) => {
-        console.log("User interaction needed: ", error);
-      });
+      .catch((error) => {});
   }
 
   private pauseSong(): void {
@@ -633,6 +671,13 @@ class MusicPlayer {
       <button class="btn btn--more">
         <i class="fa-solid fa-ellipsis"></i>
       </button>
+      <div class="dropdown">
+        <div class="dropdown__container">
+          <div class="dropdown__item">Do 1</div>
+          <div class="dropdown__item">Do 2</div>
+          <div class="dropdown__item">Do 3</div>
+        </div>
+      </div>
     </div>`;
   }
 }
